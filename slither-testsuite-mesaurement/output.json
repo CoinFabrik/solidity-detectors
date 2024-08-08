@@ -1,0 +1,349 @@
+{
+    "arithmetic-1 vulnerable": [
+        [],
+        [
+            {
+                "elements": [
+                    {
+                        "type": "function",
+                        "name": "deposit",
+                        "source_mapping": {
+                            "start": 147,
+                            "length": 126,
+                            "filename_relative": "examples/arithmetic-1/vulnerable/contract.sol",
+                            "filename_absolute": "/home/francisco/Documentos/Projects/Goose/tests_ir/slither-testsuite-mesaurement/examples/arithmetic-1/vulnerable/contract.sol",
+                            "filename_short": "examples/arithmetic-1/vulnerable/contract.sol",
+                            "is_dependency": false,
+                            "lines": [
+                                7,
+                                8,
+                                9,
+                                10
+                            ],
+                            "starting_column": 5,
+                            "ending_column": 6
+                        },
+                        "type_specific_fields": {
+                            "parent": {
+                                "type": "contract",
+                                "name": "InsecureEtherVault",
+                                "source_mapping": {
+                                    "start": 57,
+                                    "length": 879,
+                                    "filename_relative": "examples/arithmetic-1/vulnerable/contract.sol",
+                                    "filename_absolute": "/home/francisco/Documentos/Projects/Goose/tests_ir/slither-testsuite-mesaurement/examples/arithmetic-1/vulnerable/contract.sol",
+                                    "filename_short": "examples/arithmetic-1/vulnerable/contract.sol",
+                                    "is_dependency": false,
+                                    "lines": [
+                                        4,
+                                        5,
+                                        6,
+                                        7,
+                                        8,
+                                        9,
+                                        10,
+                                        11,
+                                        12,
+                                        13,
+                                        14,
+                                        15,
+                                        16,
+                                        17,
+                                        18,
+                                        19,
+                                        20,
+                                        21,
+                                        22,
+                                        23,
+                                        24,
+                                        25,
+                                        26,
+                                        27,
+                                        28,
+                                        29,
+                                        30,
+                                        31
+                                    ],
+                                    "starting_column": 1,
+                                    "ending_column": 2
+                                }
+                            },
+                            "signature": "deposit()"
+                        }
+                    },
+                    {
+                        "type": "node",
+                        "name": "e = msg.value / 12",
+                        "source_mapping": {
+                            "start": 240,
+                            "length": 26,
+                            "filename_relative": "examples/arithmetic-1/vulnerable/contract.sol",
+                            "filename_absolute": "/home/francisco/Documentos/Projects/Goose/tests_ir/slither-testsuite-mesaurement/examples/arithmetic-1/vulnerable/contract.sol",
+                            "filename_short": "examples/arithmetic-1/vulnerable/contract.sol",
+                            "is_dependency": false,
+                            "lines": [
+                                9
+                            ],
+                            "starting_column": 9,
+                            "ending_column": 35
+                        },
+                        "type_specific_fields": {
+                            "parent": {
+                                "type": "function",
+                                "name": "deposit",
+                                "source_mapping": {
+                                    "start": 147,
+                                    "length": 126,
+                                    "filename_relative": "examples/arithmetic-1/vulnerable/contract.sol",
+                                    "filename_absolute": "/home/francisco/Documentos/Projects/Goose/tests_ir/slither-testsuite-mesaurement/examples/arithmetic-1/vulnerable/contract.sol",
+                                    "filename_short": "examples/arithmetic-1/vulnerable/contract.sol",
+                                    "is_dependency": false,
+                                    "lines": [
+                                        7,
+                                        8,
+                                        9,
+                                        10
+                                    ],
+                                    "starting_column": 5,
+                                    "ending_column": 6
+                                },
+                                "type_specific_fields": {
+                                    "parent": {
+                                        "type": "contract",
+                                        "name": "InsecureEtherVault",
+                                        "source_mapping": {
+                                            "start": 57,
+                                            "length": 879,
+                                            "filename_relative": "examples/arithmetic-1/vulnerable/contract.sol",
+                                            "filename_absolute": "/home/francisco/Documentos/Projects/Goose/tests_ir/slither-testsuite-mesaurement/examples/arithmetic-1/vulnerable/contract.sol",
+                                            "filename_short": "examples/arithmetic-1/vulnerable/contract.sol",
+                                            "is_dependency": false,
+                                            "lines": [
+                                                4,
+                                                5,
+                                                6,
+                                                7,
+                                                8,
+                                                9,
+                                                10,
+                                                11,
+                                                12,
+                                                13,
+                                                14,
+                                                15,
+                                                16,
+                                                17,
+                                                18,
+                                                19,
+                                                20,
+                                                21,
+                                                22,
+                                                23,
+                                                24,
+                                                25,
+                                                26,
+                                                27,
+                                                28,
+                                                29,
+                                                30,
+                                                31
+                                            ],
+                                            "starting_column": 1,
+                                            "ending_column": 2
+                                        }
+                                    },
+                                    "signature": "deposit()"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "description": "InsecureEtherVault.deposit() (examples/arithmetic-1/vulnerable/contract.sol#7-10) can divide by zero:\n\t- e = msg.value / 12 (examples/arithmetic-1/vulnerable/contract.sol#9)\n",
+                "markdown": "[InsecureEtherVault.deposit()](examples/arithmetic-1/vulnerable/contract.sol#L7-L10) can divide by zero:\n\t- [e = msg.value / 12](examples/arithmetic-1/vulnerable/contract.sol#L9)\n",
+                "first_markdown_element": "examples/arithmetic-1/vulnerable/contract.sol#L7-L10",
+                "id": "16628d78762077730f993a47ae3cb7ad8bc94aa0c0ad27761d6f2196eef4aaa7",
+                "check": "division-by-zero",
+                "impact": "Medium",
+                "confidence": "Medium"
+            },
+            {
+                "elements": [
+                    {
+                        "type": "function",
+                        "name": "withdraw",
+                        "source_mapping": {
+                            "start": 279,
+                            "length": 427,
+                            "filename_relative": "examples/arithmetic-1/vulnerable/contract.sol",
+                            "filename_absolute": "/home/francisco/Documentos/Projects/Goose/tests_ir/slither-testsuite-mesaurement/examples/arithmetic-1/vulnerable/contract.sol",
+                            "filename_short": "examples/arithmetic-1/vulnerable/contract.sol",
+                            "is_dependency": false,
+                            "lines": [
+                                12,
+                                13,
+                                14,
+                                15,
+                                16,
+                                17,
+                                18,
+                                19,
+                                20,
+                                21,
+                                22
+                            ],
+                            "starting_column": 5,
+                            "ending_column": 6
+                        },
+                        "type_specific_fields": {
+                            "parent": {
+                                "type": "contract",
+                                "name": "InsecureEtherVault",
+                                "source_mapping": {
+                                    "start": 57,
+                                    "length": 879,
+                                    "filename_relative": "examples/arithmetic-1/vulnerable/contract.sol",
+                                    "filename_absolute": "/home/francisco/Documentos/Projects/Goose/tests_ir/slither-testsuite-mesaurement/examples/arithmetic-1/vulnerable/contract.sol",
+                                    "filename_short": "examples/arithmetic-1/vulnerable/contract.sol",
+                                    "is_dependency": false,
+                                    "lines": [
+                                        4,
+                                        5,
+                                        6,
+                                        7,
+                                        8,
+                                        9,
+                                        10,
+                                        11,
+                                        12,
+                                        13,
+                                        14,
+                                        15,
+                                        16,
+                                        17,
+                                        18,
+                                        19,
+                                        20,
+                                        21,
+                                        22,
+                                        23,
+                                        24,
+                                        25,
+                                        26,
+                                        27,
+                                        28,
+                                        29,
+                                        30,
+                                        31
+                                    ],
+                                    "starting_column": 1,
+                                    "ending_column": 2
+                                }
+                            },
+                            "signature": "withdraw(uint256)"
+                        }
+                    },
+                    {
+                        "type": "node",
+                        "name": "userBalances[msg.sender] = balance / _amount * b",
+                        "source_mapping": {
+                            "start": 527,
+                            "length": 49,
+                            "filename_relative": "examples/arithmetic-1/vulnerable/contract.sol",
+                            "filename_absolute": "/home/francisco/Documentos/Projects/Goose/tests_ir/slither-testsuite-mesaurement/examples/arithmetic-1/vulnerable/contract.sol",
+                            "filename_short": "examples/arithmetic-1/vulnerable/contract.sol",
+                            "is_dependency": false,
+                            "lines": [
+                                18
+                            ],
+                            "starting_column": 9,
+                            "ending_column": 58
+                        },
+                        "type_specific_fields": {
+                            "parent": {
+                                "type": "function",
+                                "name": "withdraw",
+                                "source_mapping": {
+                                    "start": 279,
+                                    "length": 427,
+                                    "filename_relative": "examples/arithmetic-1/vulnerable/contract.sol",
+                                    "filename_absolute": "/home/francisco/Documentos/Projects/Goose/tests_ir/slither-testsuite-mesaurement/examples/arithmetic-1/vulnerable/contract.sol",
+                                    "filename_short": "examples/arithmetic-1/vulnerable/contract.sol",
+                                    "is_dependency": false,
+                                    "lines": [
+                                        12,
+                                        13,
+                                        14,
+                                        15,
+                                        16,
+                                        17,
+                                        18,
+                                        19,
+                                        20,
+                                        21,
+                                        22
+                                    ],
+                                    "starting_column": 5,
+                                    "ending_column": 6
+                                },
+                                "type_specific_fields": {
+                                    "parent": {
+                                        "type": "contract",
+                                        "name": "InsecureEtherVault",
+                                        "source_mapping": {
+                                            "start": 57,
+                                            "length": 879,
+                                            "filename_relative": "examples/arithmetic-1/vulnerable/contract.sol",
+                                            "filename_absolute": "/home/francisco/Documentos/Projects/Goose/tests_ir/slither-testsuite-mesaurement/examples/arithmetic-1/vulnerable/contract.sol",
+                                            "filename_short": "examples/arithmetic-1/vulnerable/contract.sol",
+                                            "is_dependency": false,
+                                            "lines": [
+                                                4,
+                                                5,
+                                                6,
+                                                7,
+                                                8,
+                                                9,
+                                                10,
+                                                11,
+                                                12,
+                                                13,
+                                                14,
+                                                15,
+                                                16,
+                                                17,
+                                                18,
+                                                19,
+                                                20,
+                                                21,
+                                                22,
+                                                23,
+                                                24,
+                                                25,
+                                                26,
+                                                27,
+                                                28,
+                                                29,
+                                                30,
+                                                31
+                                            ],
+                                            "starting_column": 1,
+                                            "ending_column": 2
+                                        }
+                                    },
+                                    "signature": "withdraw(uint256)"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "description": "InsecureEtherVault.withdraw(uint256) (examples/arithmetic-1/vulnerable/contract.sol#12-22) can divide by zero:\n\t- userBalances[msg.sender] = balance / _amount * b (examples/arithmetic-1/vulnerable/contract.sol#18)\n",
+                "markdown": "[InsecureEtherVault.withdraw(uint256)](examples/arithmetic-1/vulnerable/contract.sol#L12-L22) can divide by zero:\n\t- [userBalances[msg.sender] = balance / _amount * b](examples/arithmetic-1/vulnerable/contract.sol#L18)\n",
+                "first_markdown_element": "examples/arithmetic-1/vulnerable/contract.sol#L12-L22",
+                "id": "43adf7b3f4795e3912e0a04f551b5f759caf41c19d181744fe02ddbedf935a96",
+                "check": "division-by-zero",
+                "impact": "Medium",
+                "confidence": "Medium"
+            }
+        ]
+    ]
+}
