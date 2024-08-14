@@ -5,23 +5,27 @@ contract InsecureEtherVault {
     mapping (address => uint256) private userBalances;
 
     function deposit() external payable {
+        uint256 myval = 16 / 2;
+        uint256 e = myval - 8;
+        uint256 f = e /2;
+        uint256 ko = 88;
         userBalances[msg.sender] += msg.value;
-        uint256 e = msg.value / 12;
+        e = ko / myval;
     }
 
     function withdraw(uint256 _amount) external {
         uint256 b = 6542345;
+        uint256 a = 324;
         uint256 balance = getUserBalance(msg.sender);
         require(balance - _amount >= 0, "Insufficient balance");
 
         userBalances[msg.sender] -= _amount;
-        userBalances[msg.sender] = balance / _amount  * b;
         
         (bool success, ) = msg.sender.call{value: _amount}("");
         require(success, "Failed to send Ether");
     }
 
-    function getEtherBalance() external view returns (uint256) {
+    function getEtherBalance() external returns (uint256) {
         return address(this).balance;
     }
 
