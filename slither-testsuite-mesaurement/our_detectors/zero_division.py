@@ -69,7 +69,10 @@ def evaluate_binary_operation(ir, final, result):
             Literal(str(temp_left),type(str)),
             Literal(str(temp_right),type(str)),
             BinaryOperationType.get_type(ir.type.value))
-        result[ir.lvalue] = ConstantFolding(new_expression, temp_left.type).result().value
+        try:
+            result[ir.lvalue] = ConstantFolding(new_expression, temp_left.type).result().value
+        except:
+            result[ir.lvalue] = None
 
 def list_variables(node, final)-> dict:
     explored = set()

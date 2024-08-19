@@ -1,22 +1,22 @@
 INFO:Printers:Contract InsecureEtherVault
         Function InsecureEtherVault.deposit()
                 IRs:
-                        userBalances_1(mapping(address => uint256)) := ϕ(['userBalances_6', 'userBalances_2', 'userBalances_5', 'userBalances_0'])
+                        userBalances_1(mapping(address => uint256)) := ϕ(['userBalances_0', 'userBalances_2', 'userBalances_5', 'userBalances_6'])
                         stateVariable_1(uint256) := ϕ(['stateVariable_0'])
-                        otherVar_1(uint256) := ϕ(['otherVar_0', 'otherVar_3', 'otherVar_4'])
+                        otherVar_1(uint256) := ϕ(['otherVar_3', 'otherVar_0', 'otherVar_4'])
                 Expression: myval = 16 / 2 + 65 - 25
                 IRs:
                         TMP_0(uint256) = 16 / 2
                         TMP_1(uint256) = TMP_0 + 65
                         TMP_2(uint256) = TMP_1 - 25
                         myval_1(uint256) := TMP_2(uint256)
-                Expression: e = myval - 8
+                Expression: e = myval - 48
                 IRs:
-                        TMP_3(uint256) = myval_1 - 8
+                        TMP_3(uint256) = myval_1 - 48
                         e_1(uint256) := TMP_3(uint256)
-                Expression: f = e / 2
+                Expression: f = 2 / e
                 IRs:
-                        TMP_4(uint256) = e_1 / 2
+                        TMP_4(uint256) = 2 / e_1
                         f_1(uint256) := TMP_4(uint256)
                 Expression: ko = 88
                 IRs:
@@ -34,7 +34,7 @@ INFO:Printers:Contract InsecureEtherVault
                 IRs:
                         myval_2(uint256) := 0(uint256)
                 IRs:
-                        myval_3(uint256) := ϕ(['myval_2', 'myval_1'])
+                        myval_3(uint256) := ϕ(['myval_1', 'myval_2'])
                 Expression: e = ko / myval
                 IRs:
                         TMP_6(uint256) = ko_1 / myval_3
@@ -52,8 +52,8 @@ INFO:Printers:Contract InsecureEtherVault
                         ko_2(uint256) := otherVar_1(uint256)
         Function InsecureEtherVault.withdraw(uint256)
                 IRs:
-                        userBalances_3(mapping(address => uint256)) := ϕ(['userBalances_6', 'userBalances_2', 'userBalances_5', 'userBalances_0'])
-                        otherVar_2(uint256) := ϕ(['otherVar_0', 'otherVar_3', 'otherVar_4'])
+                        userBalances_3(mapping(address => uint256)) := ϕ(['userBalances_0', 'userBalances_2', 'userBalances_5', 'userBalances_6'])
+                        otherVar_2(uint256) := ϕ(['otherVar_3', 'otherVar_0', 'otherVar_4'])
                 Expression: b = 6542345
                 IRs:
                         b_1(uint256) := 6542345(uint256)
@@ -95,19 +95,27 @@ INFO:Printers:Contract InsecureEtherVault
                 IRs:
                         TMP_14(uint256) = stateVariable_2 + 85
                         localModified_1(uint256) := TMP_14(uint256)
+                Expression: anotherzero = 89 / localModified
+                IRs:
+                        TMP_15(uint256) = 89 / localModified_1
+                        anotherzero_1(uint256) := TMP_15(uint256)
+                Expression: raiseserror = 2 / anotherzero
+                IRs:
+                        TMP_16(uint256) = 2 / anotherzero_1
+                        raiseserror_1(uint256) := TMP_16(uint256)
                 Expression: otherVar = localModified + 7
                 IRs:
-                        TMP_15(uint256) = localModified_1 + 7
-                        otherVar_4(uint256) := TMP_15(uint256)
+                        TMP_17(uint256) = localModified_1 + 7
+                        otherVar_4(uint256) := TMP_17(uint256)
                 Expression: address(this).balance
                 IRs:
-                        TMP_16 = CONVERT this to address
-                        TMP_17(uint256) = SOLIDITY_CALL balance(address)(TMP_16)
-                        RETURN TMP_17
+                        TMP_18 = CONVERT this to address
+                        TMP_19(uint256) = SOLIDITY_CALL balance(address)(TMP_18)
+                        RETURN TMP_19
         Function InsecureEtherVault.getUserBalance(address)
                 IRs:
                         _user_1(address) := ϕ(['msg.sender'])
-                        userBalances_6(mapping(address => uint256)) := ϕ(['userBalances_6', 'userBalances_2', 'userBalances_5', 'userBalances_0'])
+                        userBalances_6(mapping(address => uint256)) := ϕ(['userBalances_0', 'userBalances_2', 'userBalances_5', 'userBalances_6'])
                 Expression: userBalances[_user]
                 IRs:
                         REF_3(uint256) -> userBalances_6[_user_1]

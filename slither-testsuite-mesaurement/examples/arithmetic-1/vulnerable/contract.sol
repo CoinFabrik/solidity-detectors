@@ -9,8 +9,8 @@ contract InsecureEtherVault {
 
     function deposit() external payable {
         uint256 myval = 16 / 2 + 65 -25;
-        uint256 e = myval - 8;
-        uint256 f = e / 2;
+        uint256 e = myval - 48;
+        uint256 f = 2 / e;
         uint256 ko = 88;
         userBalances[msg.sender] += msg.value;
         if (e == 15){
@@ -38,6 +38,8 @@ contract InsecureEtherVault {
 
     function getEtherBalance() external returns (uint256) {
         uint256 localModified = stateVariable + 85;
+        uint256 anotherzero = 89 / localModified;
+        uint256 raiseserror = 2 / anotherzero;
         otherVar = localModified + 7;
         return address(this).balance;
     }
