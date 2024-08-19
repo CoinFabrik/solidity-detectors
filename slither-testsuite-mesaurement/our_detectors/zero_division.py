@@ -4,12 +4,14 @@ from typing import DefaultDict, List, Tuple
 from slither.core.cfg.node import Node
 from slither.core.declarations.contract import Contract
 from slither.core.declarations.function_contract import FunctionContract
+from slither.core.declarations.solidity_variables import SolidityVariableComposed
 from slither.detectors.abstract_detector import (
     AbstractDetector,
     DetectorClassification,
     DETECTOR_INFO,
 )
-from slither.slithir.operations import Binary, Assignment, BinaryType, LibraryCall, Operation
+from slither.core.variables import StateVariable
+from slither.slithir.operations import Binary, Assignment, BinaryType, LibraryCall, Operation, Phi
 from slither.slithir.utils.utils import LVALUE
 from slither.slithir.variables import Constant
 from slither.utils.output import Output
@@ -19,16 +21,11 @@ from slither.core.expressions import (
     BinaryOperationType,
     BinaryOperation,
 )
-from slither.core.solidity_types.elementary_type import ElementaryType
-from slither.core.variables import Variable, StateVariable
 from slither.core.cfg.node import NodeType, Node
-from slither.core.expressions.expression import Expression
 
 def is_division(ir: Operation) -> bool:
     if isinstance(ir, Binary):
         if ir.type == BinaryType.DIVISION:
-            a = ir.variable_left
-            b = ir.variable_right
             return True
 
     if isinstance(ir, LibraryCall):
@@ -52,52 +49,69 @@ def is_assert(node: Node) -> bool:
         return True
     return False
 
-def list_variables(to_explore: List[Node])-> None:
+def evaluate_binary_operation(ir, final, result):
+    temp_left = ir.variable_left
+    temp_right = ir.variable_right
+    if (ir.variable_left in final):
+        temp_left = final[ir.variable_left]
+    elif ir.variable_left in result:
+        temp_left = Constant(str(result[ir.variable_left]))
+    if (ir.variable_right in final):
+        temp_right = final[ir.variable_right]
+    elif ir.variable_right in result:
+        temp_right = Constant(str(result[ir.variable_right]))
+    if (isinstance(ir.variable_left, StateVariable) and ir.variable_left.is_constant):
+        temp_left = final[ir.variable_left.name]
+    if (isinstance(ir.variable_right, StateVariable) and ir.variable_right.is_constant):
+        temp_right = final[ir.variable_right.name]
+    if (isinstance(temp_left, Constant) and isinstance(temp_right, Constant)):
+        new_expression = BinaryOperation(
+            Literal(str(temp_left),type(str)),
+            Literal(str(temp_right),type(str)),
+            BinaryOperationType.get_type(ir.type.value))
+        result[ir.lvalue] = ConstantFolding(new_expression, temp_left.type).result().value
+
+def list_variables(node, final)-> dict:
     explored = set()
     vals = {}
     result = {}
-    final = {}
-    while to_explore:  # pylint: disable=too-many-nested-blocks
-        node = to_explore.pop()
+    if (node.type == NodeType.VARIABLE or node.type == NodeType.EXPRESSION or node.type == NodeType.ENTRYPOINT):
+        for ir in node.irs_ssa:
+            if (isinstance(ir, Phi)):
+                if (isinstance(ir.lvalue, StateVariable) and ir.lvalue.is_constant):
+                    final[ir.lvalue] = final[ir.rvalues[0].name]
 
-        if node in explored:
-            continue
-        explored.add(node)
+            if (isinstance(ir, Binary)):
+                evaluate_binary_operation(ir, final, result)
 
-        if (node.type == NodeType.VARIABLE):
-            for ir in node.irs_ssa:
-                if (isinstance(ir, Binary)):
-                    temp_left = ir.variable_left
-                    temp_right = ir.variable_right
-                    if (ir.variable_left in final):
-                        temp_left = final[ir.variable_left]
-                    if (ir.variable_right in final):
-                        temp_right = final[ir.variable_right]
-                    if (isinstance(temp_left, Constant) and isinstance(temp_right, Constant)):
-                        new_expression = BinaryOperation(Literal(str(temp_left),type(str)), Literal(str(temp_right),type(str)), BinaryOperationType.get_type(ir.type.value))
-                        result[ir.lvalue] = ConstantFolding(new_expression, "uint256").result().value
-                if (isinstance(ir, Assignment)):
+            if (isinstance(ir, Assignment)):
+                vals[ir.rvalue] = ir.lvalue
+                # In case the assigment is a constant (eg: a = 2), will be loaded to de dictionary automaticly
+                if isinstance(ir.rvalue, Constant):
+                    final[ir.lvalue] = ir.rvalue
+
+    # Case: State variables declaration
+    if (node.type == NodeType.OTHER_ENTRYPOINT):
+        for ir in node.irs:
+            if (isinstance(ir, Assignment)):
+                if ir.lvalue.is_constant:
                     vals[ir.rvalue] = ir.lvalue
                     # In case the assigment is a constant (eg: a = 2), will be loaded to de dictionary automaticly
                     if isinstance(ir.rvalue, Constant):
-                        final[ir.lvalue] = ir.rvalue
+                        final[ir.lvalue.name] = ir.rvalue
+            # There is no need to check if variables are constant, the compiler handles that
+            if (isinstance(ir, Binary)):
+                evaluate_binary_operation(ir, final, result)
 
-        for v,s in result.items():
-            if v in vals:
-                nombre = vals.get(v)
-                final[nombre] = Constant(str(s))
-        for son in node.sons:
-            to_explore.append(son)
+    # save the results in the final dictionary
+    for v,s in result.items():
+        if v in vals:
+            name = vals.get(v)
+            final[name] = Constant(str(s))
 
-    for v,s in vals.items():
-        print("VALS", v, s)
-    for v,s in final.items():
-        print("FINAL", v, s)
-
-    return
 # pylint: disable=too-many-branches
 def _explore(
-    to_explore: List[Node], f_results: List[List[Node]], divisions: DefaultDict[LVALUE, List[Node]]
+    to_explore: List[Node], f_results: List[List[Node]], divisions: DefaultDict[LVALUE, List[Node]], variables: dict
 ) -> None:
     explored = set()
     while to_explore:  # pylint: disable=too-many-nested-blocks
@@ -106,6 +120,8 @@ def _explore(
         if node in explored:
             continue
         explored.add(node)
+
+        list_variables(node, variables)
 
         equality_found = False
         # List of nodes related to one bug instance
@@ -136,39 +152,6 @@ def _explore(
             if isinstance(ir, Binary) and ir.type == BinaryType.EQUAL:
                 equality_found = True
 
-            """ if isinstance(ir, Binary):
-                if ir.type == BinaryType.DIVISION:
-                    #binary_operation = BinaryOperation(ir.variable_left, ir.variable_right, BinaryOperationType.DIVISION)
-                    state_variables = [v for v in ir.used if isinstance(v, StateVariable)]
-                    for v in state_variables:
-                        #print("variable: ", v)
-                        #j = ConstantFolding(v.expression, "uint256").result()
-                   # print(state_variables.)
-                    
-                    #h = ConstantFolding(ir.variable_left.expression, "uint256")._post_literal(j.result())
-                    #print("literal: ", h) """
-            
-        for ir in node.irs_ssa:
-                print("------------") 
-                if ir.node.fathers:
-                    print("padre: ", ir.node.fathers[0])
-                print("nodo: ", ir.node)
-                if ir.node.sons:
-                    print("hijo: ", ir.node.sons[0])
-
-                """for v in ir.get_variable:
-                    if (type(v).__name__ == "LocalIRVariable"):
-                        print("local: ", v, v.expression) 
-                    if (type(v).__name__ == "TemporaryVariableSSA"):
-                        print("Temporary: ", v, v.node._variable_declaration)
-                    if (type(v).__name__ == "ReferenceVariableSSA"):
-                        print("Reference: ", v, v._points_to)
-                    if (type(v).__name__ == "StateIRVariable"):
-                        print("State: ", v, v.contract)
-                    if (type(v).__name__ == "SolidityVariableComposed"):
-                        print("SolidityVariableComposed: ", v, v.state_variable) """
-
-
         if node_results:
             # We do not track the case where the division is done in a require() or assert()
             # Which also contains a ==, to prevent FP due to the form
@@ -185,12 +168,26 @@ def detect_divsion_by_zero(
 ) -> List[Tuple[FunctionContract, List[Node]]]:
 
     results: List[Tuple[FunctionContract, List[Node]]] = []
+    variables = {}
+    constantconsturctorarray: List[FunctionContract] = []
+    constructorprocessed = False
 
     # Loop for each function and modifier.
-    for function in contract.functions_declared + contract.modifiers_declared:
+    constantconsturctor = next((n for n in contract.functions_declared if n.name == "slitherConstructorConstantVariables"), None)
+    
+    if constantconsturctor:
+        constantconsturctorarray.append(constantconsturctor)
+
+    for function in constantconsturctorarray + contract.functions_declared + contract.modifiers_declared:
         if not function.entry_point:
             continue
 
+        # Constant state variables will be analyzed the first
+        if (function.name == "slitherConstructorConstantVariables"):
+            if (not constructorprocessed):
+                constructorprocessed = True
+            else:
+                continue
         # List of list(nodes)
         # Each list(nodes) is one bug instances
         f_results: List[List[Node]] = []
@@ -199,12 +196,13 @@ def detect_divsion_by_zero(
         # track all the division results (and the assignment of the division results)
         divisions: DefaultDict[LVALUE, List[Node]] = defaultdict(list)
 
-        list_variables([function.entry_point])
-        #_explore([function.entry_point], f_results, divisions)
+        _explore([function.entry_point], f_results, divisions, variables)
 
         for f_result in f_results:
             results.append((function, f_result))
 
+    for v,s in variables.items():
+        print("FINAL", v, s)
     return results
 
 
