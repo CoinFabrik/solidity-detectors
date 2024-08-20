@@ -8,6 +8,7 @@ import os
 from solc_select import solc_select
 from our_detectors.our_detector import OurDetector
 from our_detectors.zero_division import DivisionByZero
+from our_detectors.unprotected_set_owner import UnprotectedSetOwner
 
 
 #TODO: revisar mas detenidamente que esto este completo. Por ahora solo consideramos detectores de impacto MEDIUM o HIGH (sin importar confianza)
@@ -27,7 +28,7 @@ class_to_detector_mapping = {
 all_printer_classes = dict([(name, cls) for name, cls in all_printers.__dict__.items() if isinstance(cls, type)])
 #all custom detectors may be appended here for testing
 #all_detector_classes["OurDetector"] = OurDetector
-all_detector_classes = {"OurDetector": OurDetector, "DivisonByZero": DivisionByZero} #this is if you want to test it by itself
+all_detector_classes = {"OurDetector": OurDetector, "DivisonByZero": DivisionByZero, "UnprotectedSetOwner": UnprotectedSetOwner} #this is if you want to test it by itself
 
 
 def solc_path_finder(version:str):
