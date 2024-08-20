@@ -1,0 +1,8 @@
+{
+  "vulnerable": true,
+  "class": "Arithmetic",
+  "subclass": "Integer underflow",
+  "function": "withdraw",
+  "line": "13",
+  "comment": ""
+}
