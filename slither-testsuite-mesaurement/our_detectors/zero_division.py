@@ -191,7 +191,7 @@ def _explore(
         # List of nodes related to one bug instance
         node_results: List[Node] = []
 
-        for ir in node.irs:
+        for ir in node.irs_ssa:
             if isinstance(ir, Assignment):
                 if ir.rvalue in divisions:
                     # Avoid duplicate. We dont use set so we keep the order of the nodes
@@ -210,8 +210,18 @@ def _explore(
                             nodes += [n for n in divisions[r] if n not in nodes]
                         else:
                             nodes += [n for n in divisions[r] + [node] if n not in nodes]
-                if nodes:
-                    node_results = nodes
+
+                # Check if the divisor is zero
+                if len(div_arguments) == 2:
+                    divisor = div_arguments[1]
+                    is_zero_division = False
+
+                    if divisor in variables:
+                        if isinstance(variables[divisor], Constant):
+                            is_zero_division = variables[divisor].value == 0
+
+                    if is_zero_division:
+                        node_results.append(node)
 
             if isinstance(ir, Binary) and ir.type == BinaryType.EQUAL:
                 equality_found = True
@@ -267,6 +277,7 @@ def detect_division_by_zero(
 
     for v,s in variables.items():
         print("FINAL", v, s)
+
     return results
 
 
