@@ -1,0 +1,8 @@
+{
+  "vulnerable": true,
+  "class": "Block attributes",
+  "subclass": "Time manipulation",
+  "function": "spin",
+  "line": "17",
+  "comment": ""
+}

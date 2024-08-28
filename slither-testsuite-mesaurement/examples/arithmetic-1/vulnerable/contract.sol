@@ -17,7 +17,7 @@ contract InsecureEtherVault {
             myval = 2;
         }
         else{
-            myval = 4;
+            myval = 0;
         }
         e = ko / myval;
         f = stateVariable + 56;

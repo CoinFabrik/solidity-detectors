@@ -132,9 +132,6 @@ for folder in os.listdir("examples"):
         expout_filepath = os.path.join("examples", folder, subfolder, "expected-output.json")
         files_to_run.append(contract_filepath)
         
-        with open(expout_filepath) as expout:
-            expected_results[folder + " " + subfolder] = json.load(expout)
-        
         solc_version = ""
         remaps = ""
         with open(config_filepath) as config_file:

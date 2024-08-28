@@ -12,6 +12,7 @@ from slither.detectors.abstract_detector import (
     DETECTOR_INFO,
 )
 from slither.core.variables import StateVariable, LocalVariable
+from slither.slithir.variables.variable import SlithIRVariable
 from slither.slithir.operations import Binary, Assignment, BinaryType, LibraryCall, Operation, Phi
 from slither.slithir.utils.utils import LVALUE
 from slither.slithir.variables import Constant
@@ -216,9 +217,13 @@ def _explore(
                     divisor = div_arguments[1]
                     is_zero_division = False
 
-                    if divisor in variables:
-                        if isinstance(variables[divisor], Constant):
-                            is_zero_division = variables[divisor].value == 0
+                    for val in variables:
+                        valaux = val
+                        if isinstance(val, SlithIRVariable):
+                            valaux = val.ssa_name
+                        if  isinstance(valaux,str) and (valaux == divisor.ssa_name or valaux.startswith(divisor.ssa_name + "_")):
+                            if isinstance(variables[val], Constant):
+                                is_zero_division = variables[val].value == 0
 
                     if is_zero_division:
                         node_results.append(node)
@@ -227,9 +232,6 @@ def _explore(
                 equality_found = True
 
         if node_results:
-            # We do not track the case where the division is done in a require() or assert()
-            # Which also contains a ==, to prevent FP due to the form
-            # assert(a == b * c + a % b)
             if not (is_assert(node) and equality_found):
                 f_results.append(node_results)
 
@@ -274,9 +276,6 @@ def detect_division_by_zero(
 
         for f_result in f_results:
             results.append((function, f_result))
-
-    for v,s in variables.items():
-        print("FINAL", v, s)
 
     return results
 
