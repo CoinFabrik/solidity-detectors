@@ -11,15 +11,24 @@ contract InsecureEtherVault {
         uint256 myval = 16 / 2 + 65 -25;
         uint256 e = myval - 48;
         uint256 f = 2 / e;
-        uint256 ko = 88;
+        uint256 ko = 88 + e;
         userBalances[msg.sender] += msg.value;
         if (e == 15){
-            myval = 0;
+            myval = 2;
+        }
+        else{
+            myval = 4;
         }
         e = ko / myval;
         f = stateVariable + 56;
-        f = 58 + stateVariable;
-        ko = otherVar;
+        if (e == 22) {
+            f = 58 + stateVariable;
+            }
+        else {
+            f = stateVariable;
+        }
+        ko = f *6;
+        myval = otherVar;
     }
 
     function withdraw(uint256 _amount) external {

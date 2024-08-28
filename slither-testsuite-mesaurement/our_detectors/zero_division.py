@@ -1,5 +1,6 @@
 from collections import defaultdict
 from typing import DefaultDict, List, Tuple
+import string
 
 from slither.core.cfg.node import Node
 from slither.core.declarations.contract import Contract
@@ -10,7 +11,7 @@ from slither.detectors.abstract_detector import (
     DetectorClassification,
     DETECTOR_INFO,
 )
-from slither.core.variables import StateVariable
+from slither.core.variables import StateVariable, LocalVariable
 from slither.slithir.operations import Binary, Assignment, BinaryType, LibraryCall, Operation, Phi
 from slither.slithir.utils.utils import LVALUE
 from slither.slithir.variables import Constant
@@ -49,38 +50,76 @@ def is_assert(node: Node) -> bool:
         return True
     return False
 
-def evaluate_binary_operation(ir, final, result):
-    temp_left = ir.variable_left
-    temp_right = ir.variable_right
-    if (ir.variable_left in final):
-        temp_left = final[ir.variable_left]
-    elif ir.variable_left in result:
-        temp_left = Constant(str(result[ir.variable_left]))
-    if (ir.variable_right in final):
-        temp_right = final[ir.variable_right]
-    elif ir.variable_right in result:
-        temp_right = Constant(str(result[ir.variable_right]))
-    if (isinstance(ir.variable_left, StateVariable) and ir.variable_left.is_constant):
-        temp_left = final[ir.variable_left.name]
-    if (isinstance(ir.variable_right, StateVariable) and ir.variable_right.is_constant):
-        temp_right = final[ir.variable_right.name]
-    if (isinstance(temp_left, Constant) and isinstance(temp_right, Constant)):
-        new_expression = BinaryOperation(
-            Literal(str(temp_left),type(str)),
-            Literal(str(temp_right),type(str)),
-            BinaryOperationType.get_type(ir.type.value))
-        try:
-            result[ir.lvalue] = ConstantFolding(new_expression, temp_left.type).result().value
-        except:
-            result[ir.lvalue] = None
+def get_temp_value(variable, final, result):
+    # case: the expression has a variable previously calculated
+    if variable in final:
+        return final[variable]
+    # case: multiple operations in the same node
+    elif variable in result:
+        return Constant(str(result[variable]))
+    #case: variables are constant stateVariables
+    if (isinstance(variable, StateVariable) and variable.is_constant):
+            return final[variable.name]
+    return variable
 
-def list_variables(node, final)-> dict:
-    explored = set()
+def process_constant_folding(left, right, ir):
+    new_expression = BinaryOperation(
+    Literal(str(left),type(str)),
+    Literal(str(right),type(str)),
+    BinaryOperationType.get_type(ir.type.value))
+    return ConstantFolding(new_expression, left.type).result().value
+
+def evaluate_binary_operation(ir: Operation, final, result):
+    if (isinstance(ir, Binary)):
+        variables_left = []
+        variables_right = []
+        temp_left = get_temp_value(ir.variable_left, final, result)
+        temp_right = get_temp_value(ir.variable_right, final, result)
+        #case: branches created due to ifs
+        for val in final:
+            if isinstance(val, str):
+                if (isinstance(ir.variable_right, LocalVariable) and ir.variable_right.ssa_name in val):
+                    variables_right.append(val)
+                if (isinstance(ir.variable_left, LocalVariable) and ir.variable_left.ssa_name in val):
+                    variables_left.append(val)
+        # Creates custom operation and calculates de result with constat folding
+        if (isinstance(temp_left, Constant) and isinstance(temp_right, Constant)):
+            try:
+                result[ir.lvalue] = process_constant_folding(temp_left,temp_right,ir)
+            except:
+                result[ir.lvalue] = None
+        # Case: due to the branches created by the ifs, the possible values of the variables are saved in an array
+        elif (variables_left or variables_right):
+            if not variables_left:
+                variables_left = [temp_left]
+            if not variables_right:
+                variables_right = [temp_right]
+
+            letter_counter = 0
+            alphabet = string.ascii_lowercase  # 'abcdefghijklmnopqrstuvwxyz'
+            
+            # Calculates every result possible and saves it in the final directory
+            for left in variables_left:
+                for right in variables_right:
+                    if isinstance(right,str):
+                        right = final[right]
+                    if isinstance(left,str):
+                        left = final[left]
+
+                    current_letter = alphabet[letter_counter % len(alphabet)]
+                    try:
+                        result[f"{ir.lvalue.name}_{current_letter}"] = process_constant_folding(left,right,ir)
+                    except:
+                        result[f"{ir.lvalue.name}_{current_letter}"] = None
+                    letter_counter += 1
+
+def list_variables(node: Node, final)-> dict:
     vals = {}
     result = {}
     if (node.type == NodeType.VARIABLE or node.type == NodeType.EXPRESSION or node.type == NodeType.ENTRYPOINT):
         for ir in node.irs_ssa:
             if (isinstance(ir, Phi)):
+                #case: constant state variables declared in phi nodes
                 if (isinstance(ir.lvalue, StateVariable) and ir.lvalue.is_constant):
                     final[ir.lvalue] = final[ir.rvalues[0].name]
 
@@ -92,6 +131,20 @@ def list_variables(node, final)-> dict:
                 # In case the assigment is a constant (eg: a = 2), will be loaded to de dictionary automaticly
                 if isinstance(ir.rvalue, Constant):
                     final[ir.lvalue] = ir.rvalue
+                # case constant state variables
+                if (isinstance(ir.rvalue, StateVariable) and ir.rvalue.is_constant):
+                    final[ir.lvalue] = final[ir.rvalue]
+                
+    if (node.type == NodeType.ENDIF):
+        for ir in node.irs_ssa:
+            # phi node declaration from the two possible cases due to the ifs
+            if (isinstance(ir, Phi)):
+                letter_counter = 0
+                alphabet = string.ascii_lowercase  # 'abcdefghijklmnopqrstuvwxyz'
+                for v in ir.rvalues:
+                    current_letter = alphabet[letter_counter % len(alphabet)]
+                    final[f"{ir.lvalue.ssa_name}_{current_letter}"] = final[v]
+                    letter_counter +=1
 
     # Case: State variables declaration
     if (node.type == NodeType.OTHER_ENTRYPOINT):
@@ -107,10 +160,18 @@ def list_variables(node, final)-> dict:
                 evaluate_binary_operation(ir, final, result)
 
     # save the results in the final dictionary
+    letter_counter = 0
+    alphabet = string.ascii_lowercase  # 'abcdefghijklmnopqrstuvwxyz'
     for v,s in result.items():
         if v in vals:
             name = vals.get(v)
             final[name] = Constant(str(s))
+        else:
+            for t, f in vals.items():
+                if isinstance(v,str) and t.name in v:
+                    current_letter = alphabet[letter_counter % len(alphabet)]
+                    final[f"{f.ssa_name}_{current_letter}"] = s
+                    letter_counter +=1
 
 # pylint: disable=too-many-branches
 def _explore(
@@ -118,7 +179,7 @@ def _explore(
 ) -> None:
     explored = set()
     while to_explore:  # pylint: disable=too-many-nested-blocks
-        node = to_explore.pop()
+        node = to_explore.pop(0)
 
         if node in explored:
             continue
@@ -166,7 +227,7 @@ def _explore(
             to_explore.append(son)
 
 
-def detect_divsion_by_zero(
+def detect_division_by_zero(
     contract: Contract,
 ) -> List[Tuple[FunctionContract, List[Node]]]:
 
@@ -236,7 +297,7 @@ class DivisionByZero(AbstractDetector):
         """
         results = []
         for contract in self.contracts:
-            divisions_by_zero = detect_divsion_by_zero(contract)
+            divisions_by_zero = detect_division_by_zero(contract)
             if divisions_by_zero:
                 for (func, nodes) in divisions_by_zero:
 
