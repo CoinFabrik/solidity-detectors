@@ -1,0 +1,8 @@
+{
+  "vulnerable": true,
+  "class": "Reentrancy",
+  "subclass": "Lack of CEI",
+  "function": "withdraw",
+  "line": "17",
+  "comment": ""
+}
