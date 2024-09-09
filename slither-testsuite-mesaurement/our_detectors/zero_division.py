@@ -122,7 +122,8 @@ def list_variables(node: Node, final)-> dict:
             if (isinstance(ir, Phi)):
                 #case: constant state variables declared in phi nodes
                 if (isinstance(ir.lvalue, StateVariable) and ir.lvalue.is_constant):
-                    final[ir.lvalue] = final[ir.rvalues[0].name]
+                    if ir.rvalues[0].name in final:
+                        final[ir.lvalue] = final[ir.rvalues[0].name]
 
             if (isinstance(ir, Binary)):
                 evaluate_binary_operation(ir, final, result)
@@ -143,9 +144,10 @@ def list_variables(node: Node, final)-> dict:
                 letter_counter = 0
                 alphabet = string.ascii_lowercase  # 'abcdefghijklmnopqrstuvwxyz'
                 for v in ir.rvalues:
-                    current_letter = alphabet[letter_counter % len(alphabet)]
-                    final[f"{ir.lvalue.ssa_name}_{current_letter}"] = final[v]
-                    letter_counter +=1
+                    if v in final:
+                        current_letter = alphabet[letter_counter % len(alphabet)]
+                        final[f"{ir.lvalue.ssa_name}_{current_letter}"] = final[v]
+                        letter_counter +=1
 
     # Case: State variables declaration
     if (node.type == NodeType.OTHER_ENTRYPOINT):
@@ -221,7 +223,7 @@ def _explore(
                         valaux = val
                         if isinstance(val, SlithIRVariable):
                             valaux = val.ssa_name
-                        if  isinstance(valaux,str) and (valaux == divisor.ssa_name or valaux.startswith(divisor.ssa_name + "_")):
+                        if  isinstance(valaux,str) and isinstance(divisor, Constant) and (valaux == divisor.ssa_name or valaux.startswith(divisor.ssa_name + "_")):
                             if isinstance(variables[val], Constant):
                                 is_zero_division = variables[val].value == 0
 
