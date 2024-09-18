@@ -13,6 +13,7 @@ from slither.core.expressions import UnaryOperation, UnaryOperationType
 from slither.core.variables.variable import Variable
 from slither.detectors.abstract_detector import AbstractDetector
 from slither.slithir.operations import Call, EventCall, Operation
+from slither.analyses.data_dependency.data_dependency import get_dependencies,get_all_dependencies, SUPPORTED_TYPES
 from slither.utils.output import Output
 
 
@@ -157,6 +158,26 @@ class AbstractState:
 
         contains_call = False
 
+        """ for call in node.calls_as_expression:
+        for constract, llamada in node.library_calls:
+            print(llamada, node.function, node)
+            for var in llamada.variables_read_or_written:
+                print("----------------------------")
+                print("Variable dentro de la llamada: ", var)
+                dependencies = get_dependencies(var, llamada.nodes[0])
+                print("dependency dentro de la funcion para", var)
+                for dep in dependencies:
+                    print(dep)"""
+
+
+        for vars in state_vars_written:
+            dependencies = get_dependencies(vars, node)
+            for dep in dependencies:
+                if dep in detector.state_variables_written:
+                    #se printea varias veces para la misma deteccion por la cantidad de iteraciones, si ponemos esto en el lugar indicado, funcionaria bien
+                    print("salta el detector") 
+
+
         self._written = state_vars_written
         for ir in node.irs + slithir_operations:
             if detector.can_callback(ir):
@@ -210,6 +231,7 @@ def _filter_if(node: Node) -> bool:
 
 class Reentrancy(AbstractDetector):
     KEY = "REENTRANCY"
+    state_variables_written = []
 
     # can_callback and can_send_eth are static method
     # allowing inherited classes to define different behaviors
@@ -282,17 +304,9 @@ class Reentrancy(AbstractDetector):
 
     def detect_reentrancy(self, contract: Contract) -> None:
         for function in contract.functions_and_modifiers_declared:
-            #print(contract, function, function.modifiers)
-            non_reentrant = False
-            if function.modifiers:
-                for m in function.modifiers:
-                    if (m.name == "nonReentrant"):
-                        non_reentrant = True
-                        break
-            if(non_reentrant):
-                print("entré")
-                contract.functions_and_modifiers_declared.remove(function)
-            #print(contract, function, function.modifiers)
+            for var in function.state_variables_written:
+                if var not in self.state_variables_written:
+                    self.state_variables_written.append(var)
             if not function.is_constructor:
                 if function.is_implemented:
                     if self.KEY in function.context:
@@ -309,7 +323,10 @@ class Reentrancy(AbstractDetector):
         # Its particular useful on 'complex' functions with several loops and conditions
         self.visited_all_paths = {}  # pylint: disable=attribute-defined-outside-init
 
-        #for c in self.contracts:
-        #    self.detect_reentrancy(c)
+        for c in self.contracts:
+            self.detect_reentrancy(c)
+
+        for var in self.state_variables_written:
+            print("final", var)
 
         return []

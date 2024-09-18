@@ -58,6 +58,8 @@ Bob uses the re-entrancy bug to call `withdrawBalance` two times, and withdraw m
         for contract in self.contracts:  # pylint: disable=too-many-nested-blocks
             variables_used_in_reentrancy = contract.state_variables_used_in_reentrant_targets
             for f in contract.functions_and_modifiers_declared:
+                if not f.is_reentrant:
+                    continue
                 for node in f.nodes:
                     # dead code
                     if not self.KEY in node.context:

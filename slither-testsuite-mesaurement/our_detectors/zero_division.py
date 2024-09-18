@@ -59,7 +59,7 @@ def get_temp_value(variable, final, result):
     elif variable in result:
         return Constant(str(result[variable]))
     #case: variables are constant stateVariables
-    if (isinstance(variable, StateVariable) and variable.is_constant):
+    if (isinstance(variable, StateVariable) and variable.is_constant and variable.name in final):
             return final[variable.name]
     return variable
 
@@ -134,7 +134,7 @@ def list_variables(node: Node, final)-> dict:
                 if isinstance(ir.rvalue, Constant):
                     final[ir.lvalue] = ir.rvalue
                 # case constant state variables
-                if (isinstance(ir.rvalue, StateVariable) and ir.rvalue.is_constant):
+                if (isinstance(ir.rvalue, StateVariable) and ir.rvalue.is_constant and ir.rvalue in final):
                     final[ir.lvalue] = final[ir.rvalue]
                 
     if (node.type == NodeType.ENDIF):

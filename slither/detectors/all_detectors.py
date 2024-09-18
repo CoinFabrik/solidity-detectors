@@ -12,8 +12,8 @@ from .erc.erc20.arbitrary_send_erc20_no_permit import ArbitrarySendErc20NoPermit
 from .erc.erc20.arbitrary_send_erc20_permit import ArbitrarySendErc20Permit
 from .functions.suicidal import Suicidal """
 
-""" # from .functions.complex_function import ComplexFunction
-from .reentrancy.reentrancy_benign import ReentrancyBenign
+ # from .functions.complex_function import ComplexFunction
+""" from .reentrancy.reentrancy_benign import ReentrancyBenign
 from .reentrancy.reentrancy_read_before_write import ReentrancyReadBeforeWritten
 from .reentrancy.reentrancy_eth import ReentrancyEth
 from .reentrancy.reentrancy_no_gas import ReentrancyNoGas
@@ -102,6 +102,6 @@ from .statements.unused_import import UnusedImport
 from .our_detectors.zero_division import DivisionByZero
 from .our_detectors.reentrancy.reentrancy_benign import ReentrancyBenign
 from .our_detectors.reentrancy.reentrancy_read_before_write import ReentrancyReadBeforeWritten
-from .our_detectors.reentrancy.reentrancy_eth import ReentrancyEth
 from .our_detectors.reentrancy.reentrancy_no_gas import ReentrancyNoGas
 from .our_detectors.reentrancy.reentrancy_events import ReentrancyEvent
+from .our_detectors.reentrancy.reentrancy_eth import ReentrancyEth

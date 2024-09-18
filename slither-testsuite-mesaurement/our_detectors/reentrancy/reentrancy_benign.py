@@ -55,6 +55,8 @@ Only report reentrancy that acts as a double call (see `reentrancy-eth`, `reentr
         result = defaultdict(set)
         for contract in self.contracts:
             for f in contract.functions_and_modifiers_declared:
+                if not f.is_reentrant:
+                    continue
                 for node in f.nodes:
                     # dead code
                     if self.KEY not in node.context:

@@ -57,6 +57,8 @@ Do not report reentrancies that involve Ether (see `reentrancy-eth`)."""
         for contract in self.contracts:  # pylint: disable=too-many-nested-blocks
             variables_used_in_reentrancy = contract.state_variables_used_in_reentrant_targets
             for f in contract.functions_and_modifiers_declared:
+                if not f.is_reentrant:
+                    continue
                 for node in f.nodes:
                     # dead code
                     if self.KEY not in node.context:
@@ -95,7 +97,7 @@ Do not report reentrancies that involve Ether (see `reentrancy-eth`)."""
     def _detect(self) -> List[Output]:  # pylint: disable=too-many-branches
         """"""
 
-        #super()._detect()
+        super()._detect()
         reentrancies = self.find_reentrancies()
 
         results = []
@@ -104,7 +106,6 @@ Do not report reentrancies that involve Ether (see `reentrancy-eth`)."""
         varsWritten: List[FindingValue]
         varsWrittenSet: Set[FindingValue]
         for (func, calls), varsWrittenSet in result_sorted:
-            print(func, calls)
             calls = sorted(list(set(calls)), key=lambda x: x[0].node_id)
             varsWritten = sorted(varsWrittenSet, key=lambda x: (x.variable.name, x.node.node_id))
 
