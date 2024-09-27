@@ -114,8 +114,6 @@ Bob uses the re-entrancy bug to call `withdrawBalance` two times, and withdraw m
             send_eth = sorted(list(set(send_eth)), key=lambda x: x[0].node_id)
             varsWritten = sorted(varsWrittenSet, key=lambda x: (x.variable.name, x.node.node_id))
 
-            print("hola")
-
             info = ["Reentrancy in ", func, ":\n"]
             info += ["\tExternal calls:\n"]
             for (call_info, calls_list) in calls:
