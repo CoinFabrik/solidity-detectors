@@ -1,8 +1,0 @@
-{
-  "vulnerable": false,
-  "class": "Reentrancy",
-  "subclass": "Lack of CEI",
-  "function": "",
-  "line": "",
-  "comment": "Remediated by nonReentrant OpenZeppelin modifier"
-}

@@ -1,8 +1,0 @@
-{
-  "vulnerable": true,
-  "class": "Reentrancy",
-  "subclass": "Lack of CEI",
-  "function": "bug",
-  "line": "9",
-  "comment": ""
-}
