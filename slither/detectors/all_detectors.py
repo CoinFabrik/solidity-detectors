@@ -12,12 +12,7 @@ from .erc.erc20.arbitrary_send_erc20_no_permit import ArbitrarySendErc20NoPermit
 from .erc.erc20.arbitrary_send_erc20_permit import ArbitrarySendErc20Permit
 from .functions.suicidal import Suicidal
 
-# from .functions.complex_function import ComplexFunction
-from .reentrancy.reentrancy_benign import ReentrancyBenign
-from .reentrancy.reentrancy_read_before_write import ReentrancyReadBeforeWritten
-from .reentrancy.reentrancy_eth import ReentrancyEth
-from .reentrancy.reentrancy_no_gas import ReentrancyNoGas
-from .reentrancy.reentrancy_events import ReentrancyEvent
+ # from .functions.complex_function import ComplexFunction
 from .variables.unused_state_variables import UnusedStateVars
 from .variables.could_be_constant import CouldBeConstant
 from .variables.could_be_immutable import CouldBeImmutable
@@ -98,3 +93,9 @@ from .statements.tautological_compare import TautologicalCompare
 from .statements.return_bomb import ReturnBomb
 from .functions.out_of_order_retryable import OutOfOrderRetryable
 from .statements.unused_import import UnusedImport
+from .our_detectors.zero_division import DivisionByZero
+from .our_detectors.reentrancy.reentrancy_benign import ReentrancyBenign
+from .our_detectors.reentrancy.reentrancy_read_before_write import ReentrancyReadBeforeWritten
+from .our_detectors.reentrancy.reentrancy_no_gas import ReentrancyNoGas
+from .our_detectors.reentrancy.reentrancy_eth import ReentrancyEth
+from .our_detectors.reentrancy.reentrancy_events import ReentrancyEvent

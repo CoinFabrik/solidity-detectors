@@ -9,7 +9,7 @@ from typing import Dict, Set, List
 
 from slither.detectors.abstract_detector import DetectorClassification
 from .reentrancy import Reentrancy, to_hashable
-from ...utils.output import Output
+from slither.utils.output import Output
 
 FindingKey = namedtuple("FindingKey", ["function", "calls"])
 FindingValue = namedtuple("FindingValue", ["variable", "node", "nodes", "cross_functions"])
@@ -57,6 +57,8 @@ Do not report reentrancies that involve Ether (see `reentrancy-eth`)."""
         for contract in self.contracts:  # pylint: disable=too-many-nested-blocks
             variables_used_in_reentrancy = contract.state_variables_used_in_reentrant_targets
             for f in contract.functions_and_modifiers_declared:
+                if not f.is_reentrant:
+                    continue
                 for node in f.nodes:
                     # dead code
                     if self.KEY not in node.context:

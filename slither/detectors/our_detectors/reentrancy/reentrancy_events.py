@@ -5,69 +5,78 @@
     Iterate over all the nodes of the graph until reaching a fixpoint
 """
 from collections import namedtuple, defaultdict
-from typing import DefaultDict, List, Union, Set
+from typing import DefaultDict, List, Set
 
-from slither.core.variables.variable import Variable
 from slither.detectors.abstract_detector import DetectorClassification
-from slither.detectors.reentrancy.reentrancy import Reentrancy, to_hashable
-from slither.slithir.operations import Send, Transfer, EventCall
-from slither.slithir.operations.high_level_call import HighLevelCall
-from slither.slithir.operations.member import Member
-from slither.slithir.operations.return_operation import Return
+from .reentrancy import Reentrancy, to_hashable
 from slither.utils.output import Output
 
 FindingKey = namedtuple("FindingKey", ["function", "calls", "send_eth"])
 FindingValue = namedtuple("FindingValue", ["variable", "node", "nodes"])
 
 
-class ReentrancyNoGas(Reentrancy):
-    KEY = "REENTRANCY_NO_GAS"
-
-    ARGUMENT = "reentrancy-unlimited-gas"
-    HELP = "Reentrancy vulnerabilities through send and transfer"
-    IMPACT = DetectorClassification.INFORMATIONAL
+class ReentrancyEvent(Reentrancy):
+    ARGUMENT = "reentrancy-events"
+    HELP = "Reentrancy vulnerabilities leading to out-of-order Events"
+    IMPACT = DetectorClassification.LOW
     CONFIDENCE = DetectorClassification.MEDIUM
 
     WIKI = (
-        "https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-4"
+        "https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-3"
     )
 
     WIKI_TITLE = "Reentrancy vulnerabilities"
 
     # region wiki_description
     WIKI_DESCRIPTION = """
-Detection of the [reentrancy bug](https://github.com/trailofbits/not-so-smart-contracts/tree/master/reentrancy).
-Only report reentrancy that is based on `transfer` or `send`."""
+Detects [reentrancies](https://github.com/trailofbits/not-so-smart-contracts/tree/master/reentrancy) that allow manipulation of the order or value of events."""
     # endregion wiki_description
 
     # region wiki_exploit_scenario
     WIKI_EXPLOIT_SCENARIO = """
 ```solidity
-    function callme(){
-        msg.sender.transfer(balances[msg.sender]):
-        balances[msg.sender] = 0;
-    }   
+contract ReentrantContract {
+	function f() external {
+		if (BugReentrancyEvents(msg.sender).counter() == 1) {
+			BugReentrancyEvents(msg.sender).count(this);
+		}
+	}
+}
+contract Counter {
+	uint public counter;
+	event Counter(uint);
+
+}
+contract BugReentrancyEvents is Counter {
+    function count(ReentrantContract d) external {
+        counter += 1;
+        d.f();
+        emit Counter(counter);
+    }
+}
+contract NoReentrancyEvents is Counter {
+	function count(ReentrantContract d) external {
+        counter += 1;
+        emit Counter(counter);
+        d.f();
+    }
+}
 ```
 
-`send` and `transfer` do not protect from reentrancies in case of gas price changes."""
+If the external call `d.f()` re-enters `BugReentrancyEvents`, the `Counter` events will be incorrect (`Counter(2)`, `Counter(2)`) whereas `NoReentrancyEvents` will correctly emit 
+(`Counter(1)`, `Counter(2)`). This may cause issues for offchain components that rely on the values of events e.g. checking for the amount deposited to a bridge."""
     # endregion wiki_exploit_scenario
 
-    WIKI_RECOMMENDATION = "Apply the [`check-effects-interactions` pattern](http://solidity.readthedocs.io/en/v0.4.21/security-considerations.html#re-entrancy)."
-
-    @staticmethod
-    def can_callback(ir: Union[Member, Return, HighLevelCall]) -> bool:
-        """
-        Same as Reentrancy, but also consider Send and Transfer
-
-        """
-        return isinstance(ir, (Send, Transfer))
+    WIKI_RECOMMENDATION = "Apply the [`check-effects-interactions` pattern](https://docs.soliditylang.org/en/latest/security-considerations.html#re-entrancy)."
 
     STANDARD_JSON = False
 
     def find_reentrancies(self) -> DefaultDict[FindingKey, Set[FindingValue]]:
-        result: DefaultDict[FindingKey, Set[FindingValue]] = defaultdict(set)
+        result = defaultdict(set)
         for contract in self.contracts:
             for f in contract.functions_and_modifiers_declared:
+                if not f.is_reentrant:
+                    continue
                 for node in f.nodes:
                     # dead code
                     if self.KEY not in node.context:
@@ -84,14 +93,6 @@ Only report reentrancy that is based on `transfer` or `send`."""
                         )
                         finding_vars = {
                             FindingValue(
-                                v,
-                                node,
-                                tuple(sorted(nodes, key=lambda x: x.node_id)),
-                            )
-                            for (v, nodes) in node.context[self.KEY].written.items()
-                        }
-                        finding_vars |= {
-                            FindingValue(
                                 e,
                                 e.node,
                                 tuple(sorted(nodes, key=lambda x: x.node_id)),
@@ -102,20 +103,21 @@ Only report reentrancy that is based on `transfer` or `send`."""
                             result[finding_key] |= finding_vars
         return result
 
-    def _detect(self) -> List[Output]:  # pylint: disable=too-many-branches,too-many-locals
+    def _detect(self) -> List[Output]:  # pylint: disable=too-many-branches
         """"""
-
         super()._detect()
+
         reentrancies = self.find_reentrancies()
 
         results = []
 
         result_sorted = sorted(list(reentrancies.items()), key=lambda x: x[0][0].name)
-        for (func, calls, send_eth), varsWrittenOrEvent in result_sorted:
+        for (func, calls, send_eth), events in result_sorted:
             calls = sorted(list(set(calls)), key=lambda x: x[0].node_id)
             send_eth = sorted(list(set(send_eth)), key=lambda x: x[0].node_id)
-            info = ["Reentrancy in ", func, ":\n"]
+            events = sorted(events, key=lambda x: (str(x.variable.name), x.node.node_id))
 
+            info = ["Reentrancy in ", func, ":\n"]
             info += ["\tExternal calls:\n"]
             for (call_info, calls_list) in calls:
                 info += ["\t- ", call_info, "\n"]
@@ -129,34 +131,12 @@ Only report reentrancy that is based on `transfer` or `send`."""
                     for call_list_info in calls_list:
                         if call_list_info != call_info:
                             info += ["\t\t- ", call_list_info, "\n"]
-
-            varsWritten = [
-                FindingValue(v, node, nodes)
-                for (v, node, nodes) in varsWrittenOrEvent
-                if isinstance(v, Variable)
-            ]
-            varsWritten = sorted(varsWritten, key=lambda x: (x.variable.name, x.node.node_id))
-            if varsWritten:
-                info += ["\tState variables written after the call(s):\n"]
-                for finding_value in varsWritten:
-                    info += ["\t- ", finding_value.node, "\n"]
-                    for other_node in finding_value.nodes:
-                        if other_node != finding_value.node:
-                            info += ["\t\t- ", other_node, "\n"]
-
-            events = [
-                FindingValue(v, node, nodes)
-                for (v, node, nodes) in varsWrittenOrEvent
-                if isinstance(v, EventCall)
-            ]
-            events = sorted(events, key=lambda x: (x.variable.name, x.node.node_id))
-            if events:
-                info += ["\tEvent emitted after the call(s):\n"]
-                for finding_value in events:
-                    info += ["\t- ", finding_value.node, "\n"]
-                    for other_node in finding_value.nodes:
-                        if other_node != finding_value.node:
-                            info += ["\t\t- ", other_node, "\n"]
+            info += ["\tEvent emitted after the call(s):\n"]
+            for finding_value in events:
+                info += ["\t- ", finding_value.node, "\n"]
+                for other_node in finding_value.nodes:
+                    if other_node != finding_value.node:
+                        info += ["\t\t- ", other_node, "\n"]
 
             # Create our JSON result
             res = self.generate_result(info)
@@ -187,24 +167,6 @@ Only report reentrancy that is based on `transfer` or `send`."""
                                 {"underlying_type": "external_calls_sending_eth"},
                             )
 
-            # Add all variables written via nodes which write them.
-            for finding_value in varsWritten:
-                res.add(
-                    finding_value.node,
-                    {
-                        "underlying_type": "variables_written",
-                        "variable_name": finding_value.variable.name,
-                    },
-                )
-                for other_node in finding_value.nodes:
-                    if other_node != finding_value.node:
-                        res.add(
-                            other_node,
-                            {
-                                "underlying_type": "variables_written",
-                                "variable_name": finding_value.variable.name,
-                            },
-                        )
             for finding_value in events:
                 res.add(finding_value.node, {"underlying_type": "event"})
                 for other_node in finding_value.nodes:
