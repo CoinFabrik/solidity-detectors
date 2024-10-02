@@ -11,7 +11,7 @@ from slither.detectors.abstract_detector import (
     DetectorClassification,
     DETECTOR_INFO,
 )
-from slither.core.variables import StateVariable, LocalVariable
+from slither.core.variables import StateVariable, LocalVariable, Variable
 from slither.slithir.variables.variable import SlithIRVariable
 from slither.slithir.operations import Binary, Assignment, BinaryType, LibraryCall, Operation, Phi
 from slither.slithir.utils.utils import LVALUE
@@ -223,7 +223,7 @@ def _explore(
                         valaux = val
                         if isinstance(val, SlithIRVariable):
                             valaux = val.ssa_name
-                        if  isinstance(valaux,str) and isinstance(divisor, Constant) and (valaux == divisor.ssa_name or valaux.startswith(divisor.ssa_name + "_")):
+                        if  isinstance(valaux,str) and isinstance(divisor, Variable) and (valaux == divisor.ssa_name or valaux.startswith(divisor.ssa_name + "_")):
                             if isinstance(variables[val], Constant):
                                 is_zero_division = variables[val].value == 0
 
@@ -292,7 +292,7 @@ class DivisionByZero(AbstractDetector):
     IMPACT = DetectorClassification.MEDIUM
     CONFIDENCE = DetectorClassification.MEDIUM
 
-    WIKI = "No hay wiki"
+    WIKI = " "
 
     WIKI_TITLE = "Division By Zero"
     WIKI_DESCRIPTION = "This operation can lead to a division by 0, check the arguments"
