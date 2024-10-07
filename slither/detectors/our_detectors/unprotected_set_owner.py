@@ -53,11 +53,13 @@ class UnprotectedSetOwner(AbstractDetector):
                 if ret != None:
                     modifiers.append(tuple([modifier, ret]))
             for func in contract.functions:
-                checker_modifiers_used = [m[1] for m in modifiers if m[0] in func.modifiers]
-                if func.is_constructor or len(checker_modifiers_used) != 0:
+                checker_modifiers_used = [m for m in modifiers if m[0] in func.modifiers]
+                if func.is_constructor:
                     continue
                 for op in func.slithir_ssa_operations:
-                    if isinstance(op, Assignment) and any(op.lvalue in checker_modifier[1] for checker_modifier in modifiers):
+                    if (isinstance(op, Assignment) and
+                        any(op.lvalue in checker_modifier[1] for checker_modifier in modifiers) and
+                        not any(op.lvalue in checker_modifier[1] for checker_modifier in checker_modifiers_used)):
                         results.append([func, op.lvalue])
         return results
 
