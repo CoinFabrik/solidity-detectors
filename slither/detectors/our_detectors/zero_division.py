@@ -15,7 +15,7 @@ from slither.core.variables import StateVariable, LocalVariable, Variable
 from slither.slithir.variables.variable import SlithIRVariable
 from slither.slithir.operations import Binary, Assignment, BinaryType, LibraryCall, Operation, Phi
 from slither.slithir.utils.utils import LVALUE
-from slither.slithir.variables import Constant
+from slither.slithir.variables import Constant, TemporaryVariableSSA
 from slither.utils.output import Output
 from slither.visitors.expression.constants_folding import ConstantFolding
 from slither.core.expressions import (
@@ -223,9 +223,10 @@ def _explore(
                         valaux = val
                         if isinstance(val, SlithIRVariable):
                             valaux = val.ssa_name
-                        if  isinstance(valaux,str) and isinstance(divisor, Variable) and (valaux == divisor.ssa_name or valaux.startswith(divisor.ssa_name + "_")):
-                            if isinstance(variables[val], Constant):
-                                is_zero_division = variables[val].value == 0
+                        if isinstance(divisor, (LocalVariable, Constant, StateVariable)):
+                            if  isinstance(valaux,str) and (valaux == divisor.ssa_name or valaux.startswith(divisor.ssa_name + "_")):
+                                if isinstance(variables[val], Constant):
+                                    is_zero_division = variables[val].value == 0
 
                     if is_zero_division:
                         node_results.append(node)
