@@ -99,3 +99,5 @@ from .our_detectors.reentrancy.reentrancy_read_before_write import ReentrancyRea
 from .our_detectors.reentrancy.reentrancy_no_gas import ReentrancyNoGas
 from .our_detectors.reentrancy.reentrancy_eth import ReentrancyEth
 from .our_detectors.reentrancy.reentrancy_events import ReentrancyEvent
+from .our_detectors.unprotected_set_owner import UnprotectedSetOwner
+from .our_detectors.for_over_unbounded_array import ForOverUnboundedArray

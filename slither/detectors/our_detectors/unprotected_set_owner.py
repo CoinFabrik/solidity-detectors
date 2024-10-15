@@ -28,9 +28,11 @@ class UnprotectedSetOwner(AbstractDetector):
     WIKI_RECOMMENDATION = " "
 
     def _modifier_check_permissions(self, modifier: Modifier) -> Optional[List[StateIRVariable]]:
-        var: Variable
-        phi_var: List[StateIRVariable]
+        var: Variable = None
+        phi_var: List[StateIRVariable] = []
         ops = modifier.slithir_ssa_operations
+        if sum(isinstance(op, Phi) for op in ops) == 0:
+            return None
         for op in ops:
             if isinstance(op, Phi) and isinstance(op.lvalue, StateIRVariable):
                 phi_var = [op.lvalue] + op.rvalues
@@ -38,10 +40,11 @@ class UnprotectedSetOwner(AbstractDetector):
                 if (op.variable_left.name == "msg.sender" and op.variable_right.name == phi_var[0].name or
                     op.variable_right.name == "msg.sender" and op.variable_left.name == phi_var[0].name):
                     var = op.lvalue
-            if isinstance(op, SolidityCall) and any(arg == var for arg in op.arguments):
-                return phi_var
-            if isinstance(op, Condition) and any(arg == var for arg in op.read):
-                return phi_var
+            if var:
+                if isinstance(op, SolidityCall) and any(arg == var for arg in op.arguments):
+                    return phi_var
+                if isinstance(op, Condition) and any(arg == var for arg in op.read):
+                    return phi_var
         return None
 
     def _analyze(self):
@@ -67,5 +70,5 @@ class UnprotectedSetOwner(AbstractDetector):
         res = []
         ret = self._analyze()
         for r in ret:
-            res.append(self.generate_result(['The function: "', r[0], '" writes into the variable "', r[1].name,'" used to check permissions on a modifier ']))
+            res.append(self.generate_result(['The function: "', r[0], '" writes into the variable "', r[1].name,'" used to check permissions on a modifier \n']))
         return res
