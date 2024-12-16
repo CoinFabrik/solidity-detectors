@@ -1,5 +1,7 @@
 # Solidity Detectors: Static Analysis Tool
 
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 Solidity Detectors is an open source tool to assist Solidity developers and auditors in the detection of smart contract vulnerabilities. It modifies the Slither Static Analyzer by adding 3 new detectors and modifying an existing one. 
 
 ## Quick Start
