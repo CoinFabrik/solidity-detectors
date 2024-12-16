@@ -75,10 +75,12 @@ Once you've cloned the repository and installed the necessary dependencies to ru
 
 You can run the tool on repositories and .sol files alike. Consider the following example for running the tool on a file by using the `slither` command:
 
-``
+```bash
 python3 -m slither path/to/your/directory/or/file.sol
-``
-To run files that use dependencies, add the `--solc-remaps` parameter:
 ```
+
+To run files that use dependencies, add the `--solc-remaps` parameter:
+
+```bash
 python3 -m slither path/to/your/directory/or/file.sol --solc-remaps "@dependencies=path/to/your/dependencies/@dependencies"
 ```
