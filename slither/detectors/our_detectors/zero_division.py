@@ -173,7 +173,10 @@ def list_variables(node: Node, final)-> dict:
             for t, f in vals.items():
                 if isinstance(v,str) and t.name in v:
                     current_letter = alphabet[letter_counter % len(alphabet)]
-                    final[f"{f.ssa_name}_{current_letter}"] = s
+                    if hasattr(f, 'ssa_name'):
+                        final[f"{f.ssa_name}_{current_letter}"] = s
+                    else:
+                        final[f"{f.name}_{current_letter}"] = s
                     letter_counter +=1
 
 # pylint: disable=too-many-branches
