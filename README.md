@@ -86,3 +86,11 @@ To run files that use dependencies, add the `--solc-remaps` parameter:
 ```bash
 python3 -m slither path/to/your/directory/or/file.sol --solc-remaps "@dependencies=path/to/your/dependencies/@dependencies"
 ```
+
+## About
+
+This project is a public-private initiative between the [Fundación Sadosky](https://fundacionsadosky.org.ar/), the [LAFHIS](https://lafhis.dc.uba.ar/home) laboratory of the Faculty of Exact and Natural Sciences at the University of Buenos Aires (UBA), and [CoinFabrik](https://www.coinfabrik.com/)). While the LAFHIS laboratory researches cutting-edge techniques for vulnerability detection, CoinFabrik brings its extensive experience in the blockchain industry and the development of static analyzers. The support of Fundación Sadosky is key to advancing this research and development initiative.
+
+## License
+
+This project is licensed and distributed under a AGPLv3 license. [Contact us](https://www.coinfabrik.com/) if you're looking for an exception to the terms.
