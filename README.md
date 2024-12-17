@@ -1,68 +1,88 @@
-## How to install Slither
+# Solidity Detectors: Static Analysis Tool
+
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
+Solidity Detectors is an open source tool to assist Solidity developers and auditors in the detection of smart contract vulnerabilities. It modifies the Slither Static Analyzer by adding 3 new detectors and modifying an existing one. 
+
+## Quick Start
+
+### Install Solidity Detectors
+
+Solidity Detectors is built upon the Slither Static Analyzer. Installing Solidity Detectors requires the user to install [Slither](https://github.com/crytic/slither).
 
 > **Note** <br />
 > Slither requires Python 3.8+.
 > If you're **not** going to use one of the [supported compilation frameworks](https://github.com/crytic/crytic-compile), you need [solc](https://github.com/ethereum/solidity/), the Solidity compiler; we recommend using [solc-select](https://github.com/crytic/solc-select) to conveniently switch between solc versions.
 
-### Using Pip
+#### Use a Python Virtual Environment
 
-```console
-python3 -m pip install slither-analyzer
+It is recommended to use a Python virtual environment to prevent version conflicts. For more information on Python environments for Slither, you can consult the [Developer Installation Instructions](https://github.com/trailofbits/slither/wiki/Developer-installation). 
+
+You will need to install virtualenv to create and manage your Python virtual environments.
+
+```bash
+pip install virtualenv
 ```
 
-### Using Git
+You should set up the virtual environment in the parent directory of Solidity Detectors or in any higher-level directory within the directory tree. 
+
+Navigate to the folder where you wish to create your virtual environment. It is advisable to create a **project directory** where you will create your virtual environment and clone **Solidity Detectors**. Then, create your environment with the following command:
+
+```bash
+python -m venv virtual-environment-name
+```
+
+Every time you wish to activate the virtual environment, you can run this command:
+
+```bash
+source virtual-environment-name/bin/activate
+```
+
+To deactivate the virtual environment, simply run
+
+```bash
+deactivate
+```
+
+All the necessary installations to run Slither and Solidity Detectors will be managed from the virtual environment.
+
+#### Use Git to clone the Solidity Detectors POC repository
+
+Navigate to the project directory. Then, clone **Solidity Detectors**.
 
 ```bash
 git clone https://github.com/crytic/slither.git && cd slither
 python3 -m pip install .
 ```
+#### Install and Use a solc Version
 
-We recommend using a Python virtual environment, as detailed in the [Developer Installation Instructions](https://github.com/trailofbits/slither/wiki/Developer-installation), if you prefer to install Slither via git.
-
-### Using Docker
-
-Use the [`eth-security-toolbox`](https://github.com/trailofbits/eth-security-toolbox/) docker image. It includes all of our security tools and every major version of Solidity in a single image. `/home/share` will be mounted to `/share` in the container.
+To analyze your smart contracts, you will need to install and use the necessary solc version. First, make sure that solc is installed.
 
 ```bash
-docker pull trailofbits/eth-security-toolbox
+npm install solc
 ```
 
-To share a directory in the container:
+Then, identify the solc version used by your contract and install it using the following commands.
 
 ```bash
-docker run -it -v /home/share:/share trailofbits/eth-security-toolbox
+solc-select install your-version
+solc-select use your-version
 ```
+### Run Solidity Detectors POC
 
-### Run Slither with our detectors
+Once you've cloned the repository and installed the necessary dependencies to run Slither, you can start running the static analyzer on your smart contracts. 
 
-- Link `slither-testsuite-measurement/our_detectors` to the `slither/detectors` folder.
-  In `slither/detectors`:
+> ⚠️ **Important**  <br />
+>**Solidity Detectors** is to be run from the root of the cloned solidity_detectors repository. Running the tool from another directory will result in errors or will use Slither without our Solidity Detectors if a global version of Slither is installed.
+
+You can run the tool on repositories and .sol files alike. Consider the following example for running the tool on a file by using the `slither` command:
 
 ```bash
-ln -s ../../slither-testsuite-measurement/our_detectors our_detectors
+python3 -m slither path/to/your/directory/or/file.sol
 ```
 
-- Add new detectors in `slither/detectors/all_detector.py` file.
-
-- Run slither:
+To run files that use dependencies, add the `--solc-remaps` parameter:
 
 ```bash
-python3 -m slither $PATH_TO_PROJECT
+python3 -m slither path/to/your/directory/or/file.sol --solc-remaps "@dependencies=path/to/your/dependencies/@dependencies"
 ```
-
-- With dependencies example:
-
-```bash
-python3 -m slither $PATH_TO_PROJECT --solc-remaps "@openzeppelin=node_modules/@openzeppelin @dlsl=node_modules/@dlsl" --exclude-dependencies
-```
-
-- To run only one file:
-
-```bash
-python3 -m slither $PATH_TO_PROJECT --include-paths $PATH_TO_FILE
-```
-
-### Slither testsuite measurement
-
-- Create a new detector in `/our_detectors` folder and import it in `runner.py`
-- Add it to `all_detector_classes` dictionary
