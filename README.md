@@ -73,7 +73,7 @@ solc-select use your-version
 Once you've cloned the repository and installed the necessary dependencies to run Slither, you can start running the static analyzer on your smart contracts. 
 
 > ⚠️ **Important**  <br />
->**Solidity Detectors** is to be run from the root of the cloned solidity_detectors repository. Running the tool from another directory will result in errors or will use Slither without our Solidity Detectors if a global version of Slither is installed.
+>**Solidity Detectors** is to be run from the root of the cloned solidity-detectors repository. Running the tool from another directory will result in errors or will use Slither without our Solidity Detectors if a global version of Slither is installed.
 
 You can run the tool on repositories and .sol files alike. Consider the following example for running the tool on a file by using the `slither` command:
 
